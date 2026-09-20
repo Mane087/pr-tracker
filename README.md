@@ -1,15 +1,15 @@
-# AngularTemplateProject
+# PR Tracker
 
 Plantilla generada con [Angular CLI](https://github.com/angular/angular-cli) 22.1.4 y gestionada con pnpm.
 
 ## Herramientas
 
-- TypeScript 5.9.3
+- TypeScript 6.0.3
 - Prettier 3.9.6
 - ESLint 10.9.0 + angular-eslint 22.2.0
 - Husky 9.1.7 y lint-staged 17.4.1
 - Commitlint 21.2.2
-- Testing Library
+- Jest 30 + jest-preset-angular + Testing Library
 - Tailwind CSS 4.3.3 y PostCSS 8.5.26
 
 ## Development server
@@ -56,11 +56,24 @@ pnpm test:watch
 pnpm test:ci
 ```
 
-La configuración de Angular CLI conserva además un target `ng test` basado en [Karma](https://karma-runner.github.io); ambas configuraciones coexisten.
+Jest es el único runner de pruebas unitarias. No existe target `ng test`; ejecuta siempre `pnpm test`.
 
 ## Running end-to-end tests
 
-No existe un target e2e configurado en este proyecto. Antes de ejecutar pruebas end-to-end (e2e), debes instalar y configurar un framework e2e compatible.
+Las pruebas end-to-end usan Playwright con Firefox y la API de GitHub completamente simulada. La primera vez instala el navegador:
+
+```bash
+pnpm exec playwright install firefox
+```
+
+Después ejecuta:
+
+```bash
+pnpm e2e
+pnpm e2e:report
+```
+
+El runner levanta `ng serve` en el puerto 4300 automáticamente.
 
 ## Additional Resources
 
