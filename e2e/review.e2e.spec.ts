@@ -53,7 +53,7 @@ test.describe('review queue', () => {
     await expect(card.getByLabel('Requiere atención')).toBeVisible();
     await expect(card).toContainText('1 commit nuevo · 2 comentarios nuevos');
     await expect(page.getByText('Última actualización:')).toContainText(
-      '1 sincronizados · 1 con atención',
+      '1 sincronizados 1 con atención',
     );
 
     await card.getByRole('button', { name: 'Visto' }).click();

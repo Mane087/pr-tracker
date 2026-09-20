@@ -1,121 +1,147 @@
-<div class="min-h-screen bg-white text-slate-900 dark:bg-slate-950 dark:text-slate-100">
-  <header
-    class="flex items-center justify-between gap-3 border-b border-slate-200 px-4 py-3 dark:border-slate-800"
-  >
-    <h1 class="text-lg font-semibold">PR Tracker</h1>
-
-    <div class="flex items-center gap-2">
-      @if (sessions.accounts().length > 0) {
-        <label class="flex items-center gap-2 text-sm">
-          <span class="sr-only">Cuenta de GitHub</span>
-          <select
-            class="rounded-md border border-slate-300 bg-white px-2 py-1 dark:border-slate-700 dark:bg-slate-900"
-            (change)="onAccountChange($event)"
+<div class="min-h-screen bg-canvas text-ink">
+  <header class="border-b border-line bg-surface">
+    <div class="mx-auto flex h-16 max-w-5xl items-center justify-between gap-4 px-4 sm:px-8">
+      <div class="flex items-center gap-3">
+        <span
+          class="flex size-9 shrink-0 items-center justify-center rounded-[10px] bg-primary text-on-primary shadow-button"
+        >
+          <app-icon name="pr" size="20" />
+        </span>
+        <div class="leading-tight">
+          <h1
+            class="sr-only text-[17px] font-semibold tracking-tight whitespace-nowrap sm:not-sr-only"
           >
-            @for (account of sessions.accounts(); track account.id) {
-              <option [value]="account.id" [selected]="account.id === sessions.activeSessionId()">
-                {{ account.name }}{{ account.hasToken ? '' : ' · token requerido' }}
-              </option>
-            }
-          </select>
-        </label>
-      }
-      <a
-        routerLink="/settings"
-        class="rounded-md px-2 py-1 text-sm hover:bg-slate-100 dark:hover:bg-slate-800"
-      >
-        Cuentas
-      </a>
-      <button
-        type="button"
-        class="rounded-md px-2 py-1 text-lg hover:bg-slate-100 disabled:opacity-50 dark:hover:bg-slate-800"
-        aria-label="Actualizar Pull Requests"
-        [class.animate-spin]="refresh.isRefreshing()"
-        [disabled]="!refresh.canRefresh()"
-        (click)="refreshAll()"
-      >
-        ↻
-      </button>
-      <button
-        type="button"
-        class="rounded-md px-2 py-1 text-lg hover:bg-slate-100 dark:hover:bg-slate-800"
-        [attr.aria-label]="theme.isDark() ? 'Usar tema claro' : 'Usar tema oscuro'"
-        (click)="theme.toggle()"
-      >
-        {{ theme.isDark() ? '☀' : '☾' }}
-      </button>
+            PR Tracker
+          </h1>
+          <p class="hidden text-xs text-ink-subtle sm:block">Tu cola personal de Pull Requests</p>
+        </div>
+      </div>
+
+      <div class="flex min-w-0 items-center gap-1 sm:gap-2">
+        @if (sessions.accounts().length > 0) {
+          <label class="field field-lg max-w-36 gap-2.5 pl-2 sm:max-w-none">
+            <span class="sr-only">Cuenta de GitHub</span>
+            <span
+              class="flex size-6 shrink-0 items-center justify-center rounded-full bg-primary-soft text-[11px] font-semibold text-primary-ink"
+              aria-hidden="true"
+            >
+              {{ activeAccountInitial() }}
+            </span>
+            <select class="font-medium" (change)="onAccountChange($event)">
+              @for (account of sessions.accounts(); track account.id) {
+                <option [value]="account.id" [selected]="account.id === sessions.activeSessionId()">
+                  {{ account.name }}{{ account.hasToken ? '' : ' · token requerido' }}
+                </option>
+              }
+            </select>
+            <app-icon name="chevron-down" size="14" class="field-chevron" />
+          </label>
+          <span class="mx-1 hidden h-6 w-px bg-line sm:block"></span>
+        }
+
+        <button
+          type="button"
+          class="icon-btn"
+          aria-label="Actualizar Pull Requests"
+          title="Actualizar"
+          [disabled]="!refresh.canRefresh()"
+          (click)="refreshAll()"
+        >
+          <app-icon name="reload" size="20" [class.animate-spin]="refresh.isRefreshing()" />
+        </button>
+        <button
+          type="button"
+          class="icon-btn"
+          [attr.aria-label]="theme.isDark() ? 'Usar tema claro' : 'Usar tema oscuro'"
+          [title]="theme.isDark() ? 'Tema claro' : 'Tema oscuro'"
+          (click)="theme.toggle()"
+        >
+          <app-icon [name]="theme.isDark() ? 'sun' : 'moon'" size="20" />
+        </button>
+        <a routerLink="/settings" class="icon-btn" aria-label="Cuentas de GitHub" title="Cuentas">
+          <app-icon name="account" size="20" />
+        </a>
+      </div>
     </div>
   </header>
 
   @if (refresh.lastRefreshedAt(); as lastRefreshedAt) {
-    <p
-      class="border-b border-slate-200 px-4 py-1 text-xs text-slate-500 dark:border-slate-800 dark:text-slate-400"
-    >
-      Última actualización: {{ lastRefreshedAt | date: 'short' }}
-      @if (refreshSummaryText()) {
-        · {{ refreshSummaryText() }}
-      }
-    </p>
+    <div class="border-b border-line bg-surface">
+      <p
+        class="mx-auto flex min-h-9 max-w-5xl flex-wrap items-center justify-center gap-x-4 gap-y-1 px-4 py-1 text-xs text-ink-muted sm:px-8"
+      >
+        <app-icon name="clock" size="14" />
+        Última actualización: {{ lastRefreshedAt | date: 'short' }}
+        @for (item of refreshSummaryItems(); track item.label) {
+          <span class="inline-flex items-center gap-1.5">
+            <span class="size-2 rounded-full" [class]="item.dotClass"></span>
+            {{ item.label }}
+          </span>
+        }
+      </p>
+    </div>
   }
 
   @if (appUpdate.isUpdateAvailable()) {
     <p
       role="status"
-      class="flex items-center justify-between gap-3 border-b border-lime-200 bg-lime-50 px-4 py-2 text-sm text-lime-900 dark:border-lime-900 dark:bg-lime-950 dark:text-lime-200"
+      class="notice rounded-none border-b border-line bg-primary-soft text-primary-ink"
     >
-      <span>Hay una nueva versión de PR Tracker disponible.</span>
-      <button type="button" class="font-medium underline" (click)="appUpdate.reload()">
+      <app-icon name="reload" />
+      <span class="flex-1">Hay una nueva versión de PR Tracker disponible.</span>
+      <button type="button" class="btn btn-primary btn-sm" (click)="appUpdate.reload()">
         Recargar
       </button>
     </p>
   }
 
   @for (sessionError of sessionErrorMessages(); track sessionError.accountId) {
-    <p
-      role="alert"
-      class="border-b border-red-200 bg-red-50 px-4 py-2 text-sm text-red-900 dark:border-red-900 dark:bg-red-950 dark:text-red-200"
-    >
-      <span class="font-medium">{{ sessionError.accountName }}:</span> {{ sessionError.message }}
+    <p role="alert" class="notice rounded-none border-b border-line bg-danger-soft text-danger-ink">
+      <app-icon name="alert" />
+      <span
+        ><span class="font-semibold">{{ sessionError.accountName }}:</span>
+        {{ sessionError.message }}</span
+      >
     </p>
   }
 
   @if (sessions.accountsMissingToken().length > 0) {
     <p
       role="status"
-      class="border-b border-amber-200 bg-amber-50 px-4 py-2 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-200"
+      class="notice rounded-none border-b border-line bg-attention-soft text-attention-ink"
     >
-      Falta el token de:
-      @for (account of sessions.accountsMissingToken(); track account.id) {
-        <span class="font-medium">{{ account.name }}</span
-        >{{ $last ? '' : ', ' }}
-      }
-      <a routerLink="/settings" class="ml-2 underline">Ingresar tokens</a>
+      <app-icon name="key" />
+      <span class="flex-1">
+        Falta el token de:
+        @for (account of sessions.accountsMissingToken(); track account.id) {
+          <span class="font-semibold">{{ account.name }}</span
+          >{{ $last ? '' : ', ' }}
+        }
+      </span>
+      <a routerLink="/settings" class="font-semibold underline">Ingresar tokens</a>
     </p>
   }
 
-  <nav
-    aria-label="Secciones"
-    class="flex gap-6 border-b border-slate-200 px-4 dark:border-slate-800"
-  >
-    <a
-      routerLink="/work"
-      routerLinkActive="border-lime-600 text-lime-700 dark:text-lime-400"
-      ariaCurrentWhenActive="page"
-      class="-mb-px border-b-2 border-transparent py-2 text-sm font-medium"
-    >
-      Trabajo
-    </a>
-    <a
-      routerLink="/review"
-      routerLinkActive="border-lime-600 text-lime-700 dark:text-lime-400"
-      ariaCurrentWhenActive="page"
-      class="-mb-px border-b-2 border-transparent py-2 text-sm font-medium"
-    >
-      Revisión
-    </a>
+  <nav aria-label="Secciones" class="border-b border-line bg-surface">
+    <div class="mx-auto flex max-w-5xl items-stretch justify-center gap-8 px-4 sm:px-8">
+      <a routerLink="/work" routerLinkActive ariaCurrentWhenActive="page" class="tab">
+        <app-icon name="work" size="18" />
+        Trabajo
+        @if (workCount() > 0) {
+          <span class="badge">{{ workCount() }}</span>
+        }
+      </a>
+      <a routerLink="/review" routerLinkActive ariaCurrentWhenActive="page" class="tab">
+        <app-icon name="review" size="18" />
+        Revisión
+        @if (reviewCount() > 0) {
+          <span class="badge">{{ reviewCount() }}</span>
+        }
+      </a>
+    </div>
   </nav>
 
-  <main class="mx-auto max-w-3xl px-4 py-6">
+  <main class="mx-auto max-w-5xl px-4 py-6 sm:px-8">
     <router-outlet />
   </main>
 </div>
