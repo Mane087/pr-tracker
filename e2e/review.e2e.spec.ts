@@ -8,7 +8,7 @@ test.describe('review queue', () => {
   }) => {
     const github = await mockGithub(page, {
       login: 'mane-work',
-      repositories: [],
+      repositories: [{ owner: 'acme', name: 'api' }],
       pullRequests: {
         '561': {
           number: 561,
@@ -27,7 +27,7 @@ test.describe('review queue', () => {
 
     await openTab(page, 'Revisión');
     await page.getByText('Agregar PR').click();
-    await page.getByLabel('Repositorio').fill('acme/api');
+    await page.getByLabel('Repositorio').selectOption('acme/api');
     await page.getByLabel('PR', { exact: true }).fill('561');
     await page.getByRole('button', { name: 'Agregar' }).click();
 
@@ -64,7 +64,7 @@ test.describe('review queue', () => {
   test('sends If-None-Match on the next refresh and keeps the state on 304', async ({ page }) => {
     const github = await mockGithub(page, {
       login: 'mane-work',
-      repositories: [],
+      repositories: [{ owner: 'acme', name: 'api' }],
       pullRequests: {
         '9': {
           number: 9,
@@ -83,7 +83,7 @@ test.describe('review queue', () => {
 
     await openTab(page, 'Revisión');
     await page.getByText('Agregar PR').click();
-    await page.getByLabel('Repositorio').fill('acme/api');
+    await page.getByLabel('Repositorio').selectOption('acme/api');
     await page.getByLabel('PR', { exact: true }).fill('9');
     await page.getByRole('button', { name: 'Agregar' }).click();
     const card = page.getByRole('list', { name: 'Pull Requests en revisión' }).getByRole('article');
@@ -105,7 +105,7 @@ test.describe('review queue', () => {
   test('archives a merged pull request on refresh', async ({ page }) => {
     const github = await mockGithub(page, {
       login: 'mane-work',
-      repositories: [],
+      repositories: [{ owner: 'acme', name: 'api' }],
       pullRequests: {
         '7': {
           number: 7,
@@ -123,7 +123,7 @@ test.describe('review queue', () => {
 
     await openTab(page, 'Revisión');
     await page.getByText('Agregar PR').click();
-    await page.getByLabel('Repositorio').fill('acme/api');
+    await page.getByLabel('Repositorio').selectOption('acme/api');
     await page.getByLabel('PR', { exact: true }).fill('7');
     await page.getByRole('button', { name: 'Agregar' }).click();
     const list = page.getByRole('list', { name: 'Pull Requests en revisión' });

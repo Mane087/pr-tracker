@@ -27,21 +27,25 @@
     Repositorio
     <span class="field field-lg mt-1.5 font-normal text-ink">
       <app-icon name="repository" class="text-ink-subtle" />
-      <input
-        type="text"
-        autocomplete="off"
-        placeholder="propietario/nombre"
-        list="review-repository-suggestions"
-        class="font-mono"
-        [formField]="pullRequestForm.repository"
-      />
+      <select class="font-mono" [formField]="pullRequestForm.repository">
+        @if (isLoadingRepositories()) {
+          <option value="">Cargando repositorios…</option>
+        } @else if (!selectedAccount()?.hasToken) {
+          <option value="">Ingresa el token de la cuenta</option>
+        } @else if (repositories().length === 0) {
+          <option value="">Sin repositorios accesibles</option>
+        } @else {
+          <option value="">Selecciona un repositorio</option>
+          @for (repository of repositories(); track repository.id) {
+            <option [value]="repository.fullName">{{ repository.fullName }}</option>
+          }
+        }
+      </select>
+      <app-icon name="chevron-down" size="14" class="field-chevron" />
     </span>
-    <datalist id="review-repository-suggestions">
-      @for (fullName of suggestedRepositories(); track fullName) {
-        <option [value]="fullName"></option>
-      }
-    </datalist>
-    @if (pullRequestForm.repository().touched() && pullRequestForm.repository().invalid()) {
+    @if (repositoriesError()) {
+      <span class="mt-1 block font-normal text-danger-ink">{{ repositoriesError() }}</span>
+    } @else if (pullRequestForm.repository().touched() && pullRequestForm.repository().invalid()) {
       <span class="mt-1 block font-normal text-danger-ink">{{
         pullRequestForm.repository().errors()[0]?.message
       }}</span>

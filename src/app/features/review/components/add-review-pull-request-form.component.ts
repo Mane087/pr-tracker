@@ -1,14 +1,20 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
-import { form, FormField, min, pattern, required, submit } from '@angular/forms/signals';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  effect,
+  inject,
+  signal,
+  untracked,
+} from '@angular/core';
+import { form, FormField, min, required, submit } from '@angular/forms/signals';
 
+import { GithubApiService } from '../../../core/github/github-api.service';
 import { describeGithubError } from '../../../core/github/github-errors';
 import { GithubSessionService } from '../../../core/github/github-session.service';
-import { WatchedRepositoriesService } from '../../../core/repositories/watched-repositories.service';
-import {
-  parseRepositoryFullName,
-  REPOSITORY_FULL_NAME_PATTERN,
-} from '../../../shared/utils/parse-repository-full-name';
+import { GitHubRepository } from '../../../core/github/models';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
+import { parseRepositoryFullName } from '../../../shared/utils/parse-repository-full-name';
 import { ReviewService } from '../review.service';
 
 @Component({
@@ -19,7 +25,7 @@ import { ReviewService } from '../review.service';
 })
 export class AddReviewPullRequestFormComponent {
   private readonly review = inject(ReviewService);
-  private readonly watchedRepositories = inject(WatchedRepositoriesService);
+  private readonly githubApi = inject(GithubApiService);
   protected readonly sessions = inject(GithubSessionService);
 
   protected readonly model = signal({
@@ -29,22 +35,57 @@ export class AddReviewPullRequestFormComponent {
   });
   protected readonly pullRequestForm = form(this.model, (schemaPath) => {
     required(schemaPath.accountId, { message: 'Selecciona una cuenta.' });
-    required(schemaPath.repository, { message: 'Escribe el repositorio como propietario/nombre.' });
-    pattern(schemaPath.repository, REPOSITORY_FULL_NAME_PATTERN, {
-      message: 'Usa el formato propietario/nombre.',
-    });
+    required(schemaPath.repository, { message: 'Selecciona un repositorio.' });
     min(schemaPath.number, 1, { message: 'Escribe el número del Pull Request.' });
   });
   protected readonly errorMessage = signal('');
   protected readonly successMessage = signal('');
 
-  /** Watched repositories of the selected account, offered as suggestions. */
-  protected readonly suggestedRepositories = computed(() =>
-    this.watchedRepositories
-      .all()
-      .filter((repository) => repository.githubSessionId === this.model().accountId)
-      .map((repository) => repository.fullName),
+  protected readonly selectedAccount = computed(
+    () => this.sessions.accounts().find((account) => account.id === this.model().accountId) ?? null,
   );
+  /** Repositories the selected account can access, fetched from GitHub. */
+  protected readonly repositories = signal<GitHubRepository[]>([]);
+  protected readonly isLoadingRepositories = signal(false);
+  protected readonly repositoriesError = signal('');
+  private latestRepositoriesRequest = 0;
+
+  constructor() {
+    // Reload the repository list whenever the selected account or its token changes.
+    effect(() => {
+      const account = this.selectedAccount();
+      untracked(() => void this.loadRepositories(account?.hasToken ? account.id : ''));
+    });
+  }
+
+  private async loadRepositories(accountId: string): Promise<void> {
+    const requestId = ++this.latestRepositoriesRequest;
+    this.repositories.set([]);
+    this.repositoriesError.set('');
+    this.model.update((current) =>
+      current.repository === '' ? current : { ...current, repository: '' },
+    );
+    if (accountId === '') {
+      this.isLoadingRepositories.set(false);
+      return;
+    }
+
+    this.isLoadingRepositories.set(true);
+    try {
+      const repositories = await this.githubApi.getUserRepositories(accountId);
+      if (requestId === this.latestRepositoriesRequest) {
+        this.repositories.set(repositories);
+      }
+    } catch (error) {
+      if (requestId === this.latestRepositoriesRequest) {
+        this.repositoriesError.set(describeGithubError(error));
+      }
+    } finally {
+      if (requestId === this.latestRepositoriesRequest) {
+        this.isLoadingRepositories.set(false);
+      }
+    }
+  }
 
   protected async onSubmit(event: Event): Promise<void> {
     event.preventDefault();
@@ -55,7 +96,7 @@ export class AddReviewPullRequestFormComponent {
       const { accountId, repository, number } = this.model();
       const reference = parseRepositoryFullName(repository);
       if (!reference) {
-        this.errorMessage.set('Usa el formato propietario/nombre.');
+        this.errorMessage.set('Selecciona un repositorio.');
         return;
       }
 
