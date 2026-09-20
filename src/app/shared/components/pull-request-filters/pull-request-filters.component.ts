@@ -9,6 +9,7 @@ import {
   PullRequestSortKey,
 } from '../../../core/pull-requests/pull-request-filtering';
 import { SelectOption } from '../../pull-request-labels';
+import { IconComponent } from '../icon/icon.component';
 
 const SORT_OPTIONS: readonly SelectOption<PullRequestSortKey>[] = [
   { value: 'priority', label: 'Prioridad' },
@@ -18,6 +19,7 @@ const SORT_OPTIONS: readonly SelectOption<PullRequestSortKey>[] = [
 
 @Component({
   selector: 'app-pull-request-filters',
+  imports: [IconComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './pull-request-filters.component.html',
 })

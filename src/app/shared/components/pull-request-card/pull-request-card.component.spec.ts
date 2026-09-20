@@ -103,6 +103,37 @@ describe('PullRequestCardComponent', () => {
     expect(fixture.componentInstance.lastPriority).toBe('P3');
   });
 
+  it('shows the status label as a pill and the priority as filled bars', async () => {
+    const fixture = TestBed.createComponent(HostComponent);
+    fixture.componentInstance.pullRequest.set(
+      buildPullRequest({ status: 'CURRENT', priority: 'P3' }),
+    );
+    await fixture.whenStable();
+    const compiled = fixture.nativeElement as HTMLElement;
+
+    const pill = compiled.querySelector('.pill');
+    expect(pill?.textContent?.trim()).toBe('En curso');
+    expect(pill?.classList).toContain('bg-success-soft');
+
+    const bars = () =>
+      compiled.querySelectorAll('[title^="Prioridad"] [aria-hidden="true"] > span');
+    expect(bars()).toHaveLength(4);
+    expect(Array.from(bars()).every((bar) => bar.classList.contains('bg-priority-3'))).toBe(true);
+    expect(compiled.querySelector('[title="Prioridad P3 · Alta"]')).not.toBeNull();
+
+    fixture.componentInstance.pullRequest.set(
+      buildPullRequest({ status: 'POSTPONED', priority: 'P0' }),
+    );
+    await fixture.whenStable();
+
+    expect(compiled.querySelector('.pill')?.textContent?.trim()).toBe('Pospuesto');
+    expect(compiled.querySelector('.pill')?.classList).toContain('border-dashed');
+    const filled = Array.from(bars()).filter((bar) => bar.classList.contains('bg-priority-0'));
+    const empty = Array.from(bars()).filter((bar) => bar.classList.contains('bg-line-strong'));
+    expect(filled).toHaveLength(1);
+    expect(empty).toHaveLength(3);
+  });
+
   it('shows the attention indicator with a summary of the reasons', async () => {
     const fixture = TestBed.createComponent(HostComponent);
     fixture.componentInstance.pullRequest.set(

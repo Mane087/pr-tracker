@@ -1,101 +1,118 @@
 <article
-  class="rounded-lg border p-4"
-  [class.border-amber-400]="pullRequest().isAttentionRequired"
-  [class.border-slate-200]="!pullRequest().isAttentionRequired"
-  [class.dark:border-slate-800]="!pullRequest().isAttentionRequired"
+  class="card flex flex-col gap-3.5 p-5 pb-4"
+  [class.border-attention-line]="pullRequest().isAttentionRequired"
 >
-  <div class="flex items-start gap-2">
-    @if (pullRequest().isAttentionRequired) {
-      <span
-        class="mt-0.5 inline-flex size-5 shrink-0 items-center justify-center rounded-full bg-amber-500 text-xs font-bold text-white"
-        aria-label="Requiere atención"
-      >
-        !
-      </span>
-    }
-    <div class="min-w-0 flex-1">
-      <p class="text-xs text-slate-500 dark:text-slate-400">
-        {{ pullRequest().owner }}/{{ pullRequest().repository }} · #{{ pullRequest().number }}
+  <div class="flex items-start gap-4">
+    <div class="flex min-w-0 flex-1 flex-col gap-1.5">
+      <p class="flex flex-wrap items-center gap-2.5 text-[13px] text-ink-subtle">
+        <span class="font-mono text-ink-muted"
+          >{{ pullRequest().owner }}/{{ pullRequest().repository }} · #{{
+            pullRequest().number
+          }}</span
+        >
         @if (accountName()) {
-          · {{ accountName() }}
+          <span class="chip h-5 text-[11px]">{{ accountName() }}</span>
         }
       </p>
-      <h3 class="font-medium">
+      <h3 class="text-[17px] leading-6 font-semibold">
         <a
           [href]="pullRequest().url"
           target="_blank"
           rel="noopener noreferrer"
-          class="hover:underline"
+          class="transition-colors hover:text-primary-ink hover:underline"
         >
           {{ pullRequest().title }}
         </a>
       </h3>
       @if (pullRequest().labels.length > 0) {
-        <ul class="mt-1 flex flex-wrap gap-1" aria-label="Labels">
+        <ul class="mt-0.5 flex flex-wrap gap-1.5" aria-label="Labels">
           @for (label of pullRequest().labels; track label.name) {
-            <li
-              class="inline-flex items-center gap-1 rounded-full border border-slate-200 px-2 py-0.5 text-xs dark:border-slate-700"
-            >
-              <span
-                class="inline-block size-2 rounded-full"
-                [style.background-color]="'#' + label.color"
-              ></span>
+            <li class="chip">
+              <span class="size-2 rounded-full" [style.background-color]="'#' + label.color"></span>
               {{ label.name }}
             </li>
           }
         </ul>
       }
     </div>
+
+    <div class="flex shrink-0 flex-col items-end gap-2">
+      <span class="pill" [class]="statusStyle().pill">
+        <span class="size-1.5 rounded-full" [class]="statusStyle().dot"></span>
+        {{ statusLabel() }}
+      </span>
+      <span
+        class="inline-flex items-center gap-1.5 text-xs font-semibold"
+        [class]="priorityStyle().text"
+        [title]="'Prioridad ' + priorityLabel()"
+      >
+        <span class="flex h-3.5 items-end gap-0.5" aria-hidden="true">
+          @for (level of priorityLevels; track level) {
+            <span
+              class="block w-[3px] rounded-[1px]"
+              [style.height.px]="2 + level * 3"
+              [class]="level <= priorityStyle().level ? priorityStyle().bar : 'bg-line-strong'"
+            ></span>
+          }
+        </span>
+        {{ pullRequest().priority }}
+      </span>
+    </div>
   </div>
 
-  <div class="mt-3 flex flex-wrap items-end gap-3 text-sm">
-    <label class="block">
-      <span class="block text-xs text-slate-500 dark:text-slate-400">Estado</span>
-      <select
-        class="mt-1 rounded-md border border-slate-300 bg-white px-2 py-1 dark:border-slate-700 dark:bg-slate-900"
-        (change)="onStatusChange($event)"
+  @if (pullRequest().isAttentionRequired) {
+    <div class="notice border border-attention-line bg-attention-soft text-attention-ink">
+      <span class="inline-flex text-attention-icon" role="img" aria-label="Requiere atención">
+        <app-icon name="notification" size="18" />
+      </span>
+      <p class="flex-1">{{ attentionSummary() }}</p>
+      <button
+        type="button"
+        class="btn btn-sm border-attention-line bg-surface text-attention-ink hover:border-attention-icon"
+        (click)="acknowledge.emit()"
       >
+        <app-icon name="check" size="14" />
+        Visto
+      </button>
+    </div>
+  }
+
+  <div class="flex flex-wrap items-center gap-2 border-t border-line pt-3 text-sm">
+    <label class="field h-8 rounded-lg">
+      <span class="field-label">Estado</span>
+      <select class="text-[13px] font-medium" (change)="onStatusChange($event)">
         @for (option of statusOptions(); track option.value) {
           <option [value]="option.value" [selected]="option.value === pullRequest().status">
             {{ option.label }}
           </option>
         }
       </select>
+      <app-icon name="chevron-down" size="14" class="field-chevron" />
     </label>
-    <label class="block">
-      <span class="block text-xs text-slate-500 dark:text-slate-400">Prioridad</span>
-      <select
-        class="mt-1 rounded-md border border-slate-300 bg-white px-2 py-1 dark:border-slate-700 dark:bg-slate-900"
-        (change)="onPriorityChange($event)"
-      >
+    <label class="field h-8 rounded-lg">
+      <span class="field-label">Prioridad</span>
+      <select class="text-[13px] font-medium" (change)="onPriorityChange($event)">
         @for (option of priorityOptions; track option.value) {
           <option [value]="option.value" [selected]="option.value === pullRequest().priority">
             {{ option.label }}
           </option>
         }
       </select>
+      <app-icon name="chevron-down" size="14" class="field-chevron" />
     </label>
-    @if (pullRequest().isAttentionRequired) {
-      <button
-        type="button"
-        class="rounded-md border border-amber-500 px-3 py-1 text-sm font-medium text-amber-700 hover:bg-amber-50 dark:text-amber-400 dark:hover:bg-amber-950"
-        (click)="acknowledge.emit()"
-      >
-        Visto
-      </button>
-    }
     <ng-content />
+    <span class="flex-1"></span>
+    <span class="text-xs text-ink-subtle">
+      Actualizado {{ pullRequest().updatedAt | date: 'short' }}
+    </span>
     <a
       [href]="pullRequest().url"
       target="_blank"
       rel="noopener noreferrer"
-      class="ml-auto text-lime-700 hover:underline dark:text-lime-400"
+      class="inline-flex items-center gap-1.5 text-[13px] font-semibold text-primary hover:underline"
     >
-      Abrir en GitHub ↗
+      Abrir en GitHub
+      <app-icon name="external-link" size="14" />
     </a>
   </div>
-
-  @if (attentionSummary()) {
-    <p class="mt-2 text-sm text-amber-700 dark:text-amber-400">{{ attentionSummary() }}</p>
-  }
 </article>
