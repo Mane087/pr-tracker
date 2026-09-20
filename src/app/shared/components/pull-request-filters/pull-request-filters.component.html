@@ -1,0 +1,76 @@
+<div class="flex flex-wrap items-end gap-3 text-sm" role="search">
+  <label class="block min-w-40 flex-1">
+    <span class="block text-xs text-slate-500 dark:text-slate-400">Buscar</span>
+    <input
+      type="search"
+      autocomplete="off"
+      placeholder="Título, repositorio o #número"
+      class="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-1 dark:border-slate-700 dark:bg-slate-900"
+      [value]="value().search"
+      (input)="onSearchInput($event)"
+    />
+  </label>
+
+  <label class="block">
+    <span class="block text-xs text-slate-500 dark:text-slate-400">Estado</span>
+    <select
+      class="mt-1 rounded-md border border-slate-300 bg-white px-2 py-1 dark:border-slate-700 dark:bg-slate-900"
+      (change)="onStatusChange($event)"
+    >
+      <option value="" [selected]="value().status === ''">Todos</option>
+      @for (option of statusOptions(); track option.value) {
+        <option [value]="option.value" [selected]="option.value === value().status">
+          {{ option.label }}
+        </option>
+      }
+    </select>
+  </label>
+
+  @if (accounts().length > 1) {
+    <label class="block">
+      <span class="block text-xs text-slate-500 dark:text-slate-400">Cuenta</span>
+      <select
+        class="mt-1 rounded-md border border-slate-300 bg-white px-2 py-1 dark:border-slate-700 dark:bg-slate-900"
+        (change)="onAccountChange($event)"
+      >
+        <option value="" [selected]="value().accountId === ''">Todas</option>
+        @for (account of accounts(); track account.id) {
+          <option [value]="account.id" [selected]="account.id === value().accountId">
+            {{ account.name }}
+          </option>
+        }
+      </select>
+    </label>
+  }
+
+  <label class="block">
+    <span class="block text-xs text-slate-500 dark:text-slate-400">Orden</span>
+    <select
+      class="mt-1 rounded-md border border-slate-300 bg-white px-2 py-1 dark:border-slate-700 dark:bg-slate-900"
+      (change)="onSortChange($event)"
+    >
+      @for (option of sortOptions; track option.value) {
+        <option [value]="option.value" [selected]="option.value === value().sortKey">
+          {{ option.label }}
+        </option>
+      }
+    </select>
+  </label>
+
+  <label class="flex items-center gap-2 py-1">
+    <input
+      type="checkbox"
+      [checked]="value().isAttentionOnly"
+      (change)="onAttentionChange($event)"
+    />
+    <span>Solo con atención</span>
+  </label>
+
+  <span class="py-1 text-xs text-slate-500 dark:text-slate-400" aria-live="polite">
+    {{ visibleCount() }} de {{ totalCount() }}
+  </span>
+
+  @if (hasActiveFilters()) {
+    <button type="button" class="py-1 underline" (click)="reset()">Limpiar filtros</button>
+  }
+</div>
