@@ -1,0 +1,66 @@
+<h2 class="text-base font-semibold">Revisión</h2>
+
+@if (sessions.accounts().length > 0) {
+  <details class="mt-3 rounded-lg border border-slate-200 p-3 dark:border-slate-800">
+    <summary class="cursor-pointer text-sm font-medium">Agregar PR</summary>
+    <div class="mt-3">
+      <app-add-review-pull-request-form />
+    </div>
+  </details>
+} @else {
+  <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">
+    Configura una cuenta de GitHub en
+    <a routerLink="/settings" class="underline">Cuentas</a>
+    para agregar Pull Requests a revisar.
+  </p>
+}
+
+@if (errorMessage()) {
+  <p role="alert" class="mt-3 text-sm text-red-700 dark:text-red-400">{{ errorMessage() }}</p>
+}
+
+@if (trackedPullRequests.review().length > 0) {
+  <div class="mt-4 rounded-lg border border-slate-200 p-3 dark:border-slate-800">
+    <app-pull-request-filters
+      [(value)]="filters"
+      [statusOptions]="statusOptions"
+      [accounts]="sessions.accounts()"
+      [totalCount]="trackedPullRequests.review().length"
+      [visibleCount]="visiblePullRequests().length"
+    />
+  </div>
+}
+
+<ul class="mt-4 space-y-3" aria-label="Pull Requests en revisión">
+  @for (pullRequest of visiblePullRequests(); track pullRequest.id) {
+    <li>
+      <app-pull-request-card
+        [pullRequest]="pullRequest"
+        [statusOptions]="statusOptions"
+        [accountName]="accountNameById().get(pullRequest.githubSessionId) ?? ''"
+        (statusChange)="changeStatus(pullRequest, $event)"
+        (priorityChange)="changePriority(pullRequest, $event)"
+        (acknowledge)="acknowledge(pullRequest)"
+      >
+        @if (pullRequest.status !== 'REVIEWED') {
+          <button
+            type="button"
+            class="rounded-md border border-lime-600 px-3 py-1 text-sm font-medium text-lime-700 hover:bg-lime-50 dark:text-lime-400 dark:hover:bg-lime-950"
+            (click)="markAsReviewed(pullRequest)"
+          >
+            Marcar como revisado
+          </button>
+        }
+      </app-pull-request-card>
+    </li>
+  } @empty {
+    <li class="text-sm text-slate-600 dark:text-slate-400">
+      @if (trackedPullRequests.review().length > 0) {
+        Ningún Pull Request coincide con los filtros.
+      } @else {
+        Todavía no sigues Pull Requests para revisar. Agrega uno con su cuenta, repositorio y
+        número.
+      }
+    </li>
+  }
+</ul>
