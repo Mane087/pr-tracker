@@ -8,11 +8,12 @@ import {
   parseRepositoryFullName,
   REPOSITORY_FULL_NAME_PATTERN,
 } from '../../../shared/utils/parse-repository-full-name';
+import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { ReviewService } from '../review.service';
 
 @Component({
   selector: 'app-add-review-pull-request-form',
-  imports: [FormField],
+  imports: [FormField, IconComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './add-review-pull-request-form.component.html',
 })

@@ -1,66 +1,119 @@
-<h2 class="text-base font-semibold">Revisión</h2>
-
-@if (sessions.accounts().length > 0) {
-  <details class="mt-3 rounded-lg border border-slate-200 p-3 dark:border-slate-800">
-    <summary class="cursor-pointer text-sm font-medium">Agregar PR</summary>
-    <div class="mt-3">
-      <app-add-review-pull-request-form />
+<div class="flex flex-col gap-4">
+  <div class="flex flex-wrap items-start justify-between gap-3">
+    <div>
+      <h2 class="text-2xl leading-7 font-semibold tracking-tight">Revisión</h2>
+      <p class="mt-0.5 text-sm text-ink-muted">{{ summaryText() }}</p>
     </div>
-  </details>
-} @else {
-  <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">
-    Configura una cuenta de GitHub en
-    <a routerLink="/settings" class="underline">Cuentas</a>
-    para agregar Pull Requests a revisar.
-  </p>
-}
-
-@if (errorMessage()) {
-  <p role="alert" class="mt-3 text-sm text-red-700 dark:text-red-400">{{ errorMessage() }}</p>
-}
-
-@if (trackedPullRequests.review().length > 0) {
-  <div class="mt-4 rounded-lg border border-slate-200 p-3 dark:border-slate-800">
-    <app-pull-request-filters
-      [(value)]="filters"
-      [statusOptions]="statusOptions"
-      [accounts]="sessions.accounts()"
-      [totalCount]="trackedPullRequests.review().length"
-      [visibleCount]="visiblePullRequests().length"
-    />
-  </div>
-}
-
-<ul class="mt-4 space-y-3" aria-label="Pull Requests en revisión">
-  @for (pullRequest of visiblePullRequests(); track pullRequest.id) {
-    <li>
-      <app-pull-request-card
-        [pullRequest]="pullRequest"
-        [statusOptions]="statusOptions"
-        [accountName]="accountNameById().get(pullRequest.githubSessionId) ?? ''"
-        (statusChange)="changeStatus(pullRequest, $event)"
-        (priorityChange)="changePriority(pullRequest, $event)"
-        (acknowledge)="acknowledge(pullRequest)"
+    @if (sessions.accounts().length > 0) {
+      <button
+        type="button"
+        class="btn"
+        [class.btn-primary]="!isAddFormOpen()"
+        [class.btn-secondary]="isAddFormOpen()"
+        [attr.aria-expanded]="isAddFormOpen()"
+        (click)="toggleAddForm()"
       >
-        @if (pullRequest.status !== 'REVIEWED') {
-          <button
-            type="button"
-            class="rounded-md border border-lime-600 px-3 py-1 text-sm font-medium text-lime-700 hover:bg-lime-50 dark:text-lime-400 dark:hover:bg-lime-950"
-            (click)="markAsReviewed(pullRequest)"
-          >
-            Marcar como revisado
-          </button>
+        @if (isAddFormOpen()) {
+          <app-icon name="close" />
+          Cerrar
+        } @else {
+          <app-icon name="plus" />
+          Agregar PR
         }
-      </app-pull-request-card>
-    </li>
-  } @empty {
-    <li class="text-sm text-slate-600 dark:text-slate-400">
-      @if (trackedPullRequests.review().length > 0) {
-        Ningún Pull Request coincide con los filtros.
-      } @else {
-        Todavía no sigues Pull Requests para revisar. Agrega uno con su cuenta, repositorio y
-        número.
-      }
-    </li>
+      </button>
+    }
+  </div>
+
+  @if (sessions.accounts().length > 0) {
+    @if (isAddFormOpen()) {
+      <section
+        class="card border-primary-soft p-4 ring-3 ring-primary-soft"
+        aria-label="Agregar Pull Request a revisar"
+      >
+        <app-add-review-pull-request-form />
+      </section>
+    }
+  } @else {
+    <div
+      class="flex flex-col items-center gap-2.5 rounded-[14px] border border-dashed border-line-strong px-6 py-8 text-center"
+    >
+      <span
+        class="flex size-12 items-center justify-center rounded-full bg-primary-soft text-primary-ink"
+      >
+        <app-icon name="account" size="22" />
+      </span>
+      <p class="text-sm text-ink-muted">
+        Configura una cuenta de GitHub en
+        <a routerLink="/settings" class="font-semibold text-primary underline">Cuentas</a>
+        para agregar Pull Requests a revisar.
+      </p>
+    </div>
   }
-</ul>
+
+  @if (errorMessage()) {
+    <p role="alert" class="notice bg-danger-soft text-danger-ink">
+      <app-icon name="alert" />
+      {{ errorMessage() }}
+    </p>
+  }
+
+  @if (trackedPullRequests.review().length > 0) {
+    <div class="card p-2">
+      <app-pull-request-filters
+        [(value)]="filters"
+        [statusOptions]="statusOptions"
+        [accounts]="sessions.accounts()"
+        [totalCount]="trackedPullRequests.review().length"
+        [visibleCount]="visiblePullRequests().length"
+      />
+    </div>
+  }
+
+  <ul class="flex flex-col gap-3" aria-label="Pull Requests en revisión">
+    @for (pullRequest of visiblePullRequests(); track pullRequest.id) {
+      <li>
+        <app-pull-request-card
+          [pullRequest]="pullRequest"
+          [statusOptions]="statusOptions"
+          [accountName]="accountNameById().get(pullRequest.githubSessionId) ?? ''"
+          (statusChange)="changeStatus(pullRequest, $event)"
+          (priorityChange)="changePriority(pullRequest, $event)"
+          (acknowledge)="acknowledge(pullRequest)"
+        >
+          @if (pullRequest.status !== 'REVIEWED') {
+            <button
+              type="button"
+              class="btn btn-sm border-primary-soft bg-primary-soft text-primary-ink hover:border-primary"
+              (click)="markAsReviewed(pullRequest)"
+            >
+              <app-icon name="check-circle" size="14" />
+              Marcar como revisado
+            </button>
+          }
+        </app-pull-request-card>
+      </li>
+    } @empty {
+      @if (trackedPullRequests.review().length > 0) {
+        <li
+          class="flex flex-col items-center gap-2.5 rounded-[14px] border border-dashed border-line-strong px-6 py-8 text-center text-sm text-ink-muted"
+        >
+          Ningún Pull Request coincide con los filtros.
+        </li>
+      } @else if (sessions.accounts().length > 0) {
+        <li
+          class="flex flex-col items-center gap-2.5 rounded-[14px] border border-dashed border-line-strong px-6 py-8 text-center text-sm text-ink-muted"
+        >
+          <span
+            class="flex size-12 items-center justify-center rounded-full bg-primary-soft text-primary-ink"
+          >
+            <app-icon name="review" size="22" />
+          </span>
+          <span class="text-[15px] font-semibold text-ink">
+            Todavía no sigues Pull Requests para revisar
+          </span>
+          <span>Agrega uno con su cuenta, repositorio y número.</span>
+        </li>
+      }
+    }
+  </ul>
+</div>

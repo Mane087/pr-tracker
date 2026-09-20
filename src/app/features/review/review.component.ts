@@ -10,6 +10,7 @@ import {
   PullRequestFilters,
 } from '../../core/pull-requests/pull-request-filtering';
 import { TrackedPullRequestsService } from '../../core/pull-requests/tracked-pull-requests.service';
+import { IconComponent } from '../../shared/components/icon/icon.component';
 import { PullRequestCardComponent } from '../../shared/components/pull-request-card/pull-request-card.component';
 import { PullRequestFiltersComponent } from '../../shared/components/pull-request-filters/pull-request-filters.component';
 import { REVIEW_STATUS_OPTIONS } from '../../shared/pull-request-labels';
@@ -20,6 +21,7 @@ import { ReviewService } from './review.service';
   selector: 'app-review',
   imports: [
     RouterLink,
+    IconComponent,
     PullRequestCardComponent,
     PullRequestFiltersComponent,
     AddReviewPullRequestFormComponent,
@@ -33,6 +35,20 @@ export class ReviewComponent {
   protected readonly trackedPullRequests = inject(TrackedPullRequestsService);
 
   protected readonly statusOptions = REVIEW_STATUS_OPTIONS;
+  protected readonly isAddFormOpen = signal(false);
+  protected readonly summaryText = computed(() => {
+    const pullRequests = this.trackedPullRequests.review();
+    const needsReviewCount = pullRequests.filter(
+      (pullRequest) => pullRequest.status === 'NEEDS_REVIEW',
+    ).length;
+    const total =
+      pullRequests.length === 1
+        ? '1 Pull Request que sigues'
+        : `${pullRequests.length} Pull Requests que sigues`;
+    const needsReview =
+      needsReviewCount === 1 ? '1 necesita revisión' : `${needsReviewCount} necesitan revisión`;
+    return `${total} · ${needsReview}`;
+  });
   protected readonly errorMessage = signal('');
   protected readonly filters = signal<PullRequestFilters>(DEFAULT_PULL_REQUEST_FILTERS);
   protected readonly visiblePullRequests = computed(() =>
@@ -45,6 +61,10 @@ export class ReviewComponent {
       this.sessions.accounts().map((account) => [account.id, showNames ? account.name : '']),
     );
   });
+
+  protected toggleAddForm(): void {
+    this.isAddFormOpen.update((isOpen) => !isOpen);
+  }
 
   protected async changeStatus(
     pullRequest: TrackedPullRequest,

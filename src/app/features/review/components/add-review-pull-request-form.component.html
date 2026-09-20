@@ -1,80 +1,95 @@
 <form
-  class="grid gap-3 sm:grid-cols-[1fr_2fr_auto_auto] sm:items-end"
+  class="grid gap-3 sm:grid-cols-[minmax(0,200px)_minmax(0,1fr)_120px_auto] sm:items-start"
   novalidate
   (submit)="onSubmit($event)"
 >
-  <label class="block text-sm">
-    <span class="font-medium">Cuenta</span>
-    <select
-      class="mt-1 block w-full rounded-md border border-slate-300 bg-white px-2 py-2 dark:border-slate-700 dark:bg-slate-900"
-      [formField]="pullRequestForm.accountId"
-    >
-      <option value="">Selecciona una cuenta</option>
-      @for (account of sessions.accounts(); track account.id) {
-        <option [value]="account.id">
-          {{ account.name }}{{ account.hasToken ? '' : ' · token requerido' }}
-        </option>
-      }
-    </select>
+  <label class="block text-xs font-semibold text-ink-muted">
+    Cuenta
+    <span class="field field-lg mt-1.5 font-normal text-ink">
+      <select [formField]="pullRequestForm.accountId">
+        <option value="">Selecciona una cuenta</option>
+        @for (account of sessions.accounts(); track account.id) {
+          <option [value]="account.id">
+            {{ account.name }}{{ account.hasToken ? '' : ' · token requerido' }}
+          </option>
+        }
+      </select>
+      <app-icon name="chevron-down" size="14" class="field-chevron" />
+    </span>
     @if (pullRequestForm.accountId().touched() && pullRequestForm.accountId().invalid()) {
-      <span class="mt-1 block text-red-700 dark:text-red-400">{{
+      <span class="mt-1 block font-normal text-danger-ink">{{
         pullRequestForm.accountId().errors()[0]?.message
       }}</span>
     }
   </label>
 
-  <label class="block text-sm">
-    <span class="font-medium">Repositorio</span>
-    <input
-      type="text"
-      autocomplete="off"
-      placeholder="propietario/nombre"
-      list="review-repository-suggestions"
-      class="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 dark:border-slate-700 dark:bg-slate-900"
-      [formField]="pullRequestForm.repository"
-    />
+  <label class="block text-xs font-semibold text-ink-muted">
+    Repositorio
+    <span class="field field-lg mt-1.5 font-normal text-ink">
+      <app-icon name="repository" class="text-ink-subtle" />
+      <input
+        type="text"
+        autocomplete="off"
+        placeholder="propietario/nombre"
+        list="review-repository-suggestions"
+        class="font-mono"
+        [formField]="pullRequestForm.repository"
+      />
+    </span>
     <datalist id="review-repository-suggestions">
       @for (fullName of suggestedRepositories(); track fullName) {
         <option [value]="fullName"></option>
       }
     </datalist>
     @if (pullRequestForm.repository().touched() && pullRequestForm.repository().invalid()) {
-      <span class="mt-1 block text-red-700 dark:text-red-400">{{
+      <span class="mt-1 block font-normal text-danger-ink">{{
         pullRequestForm.repository().errors()[0]?.message
       }}</span>
     }
   </label>
 
-  <label class="block text-sm">
-    <span class="font-medium">PR</span>
-    <input
-      type="number"
-      inputmode="numeric"
-      class="mt-1 block w-24 rounded-md border border-slate-300 bg-white px-3 py-2 dark:border-slate-700 dark:bg-slate-900"
-      [formField]="pullRequestForm.number"
-    />
+  <div class="block text-xs font-semibold text-ink-muted">
+    <label for="review-pull-request-number">PR</label>
+    <span class="field field-lg mt-1.5 font-normal text-ink">
+      <span class="font-mono text-ink-subtle" aria-hidden="true">#</span>
+      <input
+        id="review-pull-request-number"
+        type="number"
+        inputmode="numeric"
+        class="font-mono"
+        [formField]="pullRequestForm.number"
+      />
+    </span>
     @if (pullRequestForm.number().touched() && pullRequestForm.number().invalid()) {
-      <span class="mt-1 block text-red-700 dark:text-red-400">{{
+      <span class="mt-1 block font-normal text-danger-ink">{{
         pullRequestForm.number().errors()[0]?.message
       }}</span>
     }
-  </label>
+  </div>
 
   <button
     type="submit"
-    class="rounded-md bg-lime-600 px-4 py-2 text-sm font-medium text-white hover:bg-lime-700 disabled:opacity-60"
+    class="btn btn-primary sm:mt-[1.375rem]"
     [disabled]="pullRequestForm().submitting()"
   >
-    {{ pullRequestForm().submitting() ? 'Buscando…' : 'Agregar' }}
+    @if (pullRequestForm().submitting()) {
+      <app-icon name="reload" class="animate-spin" />
+      Buscando…
+    } @else {
+      <app-icon name="search" />
+      Agregar
+    }
   </button>
 
   @if (errorMessage()) {
-    <p role="alert" class="text-sm text-red-700 sm:col-span-4 dark:text-red-400">
+    <p role="alert" class="notice bg-danger-soft text-danger-ink sm:col-span-4">
+      <app-icon name="alert" />
       {{ errorMessage() }}
     </p>
   }
   @if (successMessage()) {
-    <p role="status" class="text-sm text-slate-700 sm:col-span-4 dark:text-slate-300">
+    <p role="status" class="notice bg-success-soft text-success-ink sm:col-span-4">
+      <app-icon name="check-circle" />
       {{ successMessage() }}
     </p>
   }
