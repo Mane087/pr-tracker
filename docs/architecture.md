@@ -67,6 +67,8 @@ Implementation notes (`core/refresh`):
 
 ## Presentation notes
 
+- Visual tokens live in `src/styles.css`: semantic CSS variables on `:root` and `.dark` (canvas, surface, ink, primary, attention, success, review, danger, priority) exposed to Tailwind through `@theme inline`, plus a small set of component classes (`btn`, `icon-btn`, `field`, `card`, `pill`, `chip`, `tab`, `badge`, `switch`, `notice`). Fonts are self-hosted from `@fontsource` because the CSP does not allow Google Fonts.
+- Icons are single SVG files under `public/assets/icons`, rendered by `shared/components/icon` as a CSS mask so they take `currentColor` in both themes. They are decorative (`aria-hidden`); the surrounding control provides the accessible name.
 - Each queue has a filter bar (`shared/components/pull-request-filters`) backed by the pure `filterAndSortPullRequests`: search, status, account, attention only, and sort by priority, last update or number. Pull requests that require attention are always listed first.
 - The shell shows the refresh button, the last refresh time with a summary, per-account sync errors and a banner when a new PWA version is ready (`core/pwa/AppUpdateService`).
 
