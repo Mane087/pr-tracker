@@ -117,6 +117,7 @@ src/app/
 - End-to-end tests run with Playwright in Firefox (`pnpm e2e`). The GitHub API is fully mocked with `page.route` in `e2e/github-mock.ts`; no real token is ever used. Tests navigate through the application links because a full page load discards the in-memory tokens by design.
 - The mock answers with `ETag` and `Access-Control-Expose-Headers`, like GitHub does. Without the latter a cross-origin script cannot read `ETag`, so conditional requests would silently stop working.
 - CI runs lint, unit tests, build and audit on every push and pull request, and the e2e job on pull requests.
+- A separate Security workflow runs CodeQL (TypeScript and GitHub Actions) on pushes to `main`, pull requests and a weekly schedule, dependency review on pull requests, and the dependency audit weekly so new advisories surface without a push.
 
 ## Out of scope
 
