@@ -119,6 +119,15 @@ src/app/
 - CI runs lint, unit tests, build and audit on every push and pull request, and the e2e job on pull requests.
 - A separate Security workflow runs CodeQL (TypeScript and GitHub Actions) on pushes to `main`, pull requests and a weekly schedule, dependency review on pull requests, and the dependency audit weekly so new advisories surface without a push.
 
+## Deployment
+
+The application is published as a GitHub Pages project site by the Deploy workflow on every push to `main` (Pages source: GitHub Actions).
+
+- The build uses `--base-href /<repository>/` because the site lives under the repository path; `index.html` keeps `/` for local development and the CLI rewrites `ngsw.json` with the same prefix.
+- `index.html` is also copied as `404.html` so deep links such as `/work` load the application and the router resolves the route.
+- Only the deploy job has `pages: write` and `id-token: write`; the build job keeps `contents: read`. No branch or token with write access to the repository is involved.
+- GitHub Pages cannot send custom headers, so the CSP is declared in `index.html`. `frame-ancestors` cannot be set there, which is acceptable because a framed load has no tokens in memory.
+
 ## Out of scope
 
 Diff viewer, code editor, commenting or approving from the app, merging, creating PRs, git operations, GitHub Actions dashboard, webhooks, backend, own user system, cloud sync, push notifications and automatic polling.
