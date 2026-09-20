@@ -4,9 +4,11 @@ import { GithubApiService } from '../../../core/github/github-api.service';
 import { describeGithubError } from '../../../core/github/github-errors';
 import { GitHubAccountSession, GitHubRepository } from '../../../core/github/models';
 import { WatchedRepositoriesService } from '../../../core/repositories/watched-repositories.service';
+import { IconComponent } from '../../../shared/components/icon/icon.component';
 
 @Component({
   selector: 'app-watched-repositories',
+  imports: [IconComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './watched-repositories.component.html',
 })

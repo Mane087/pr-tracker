@@ -10,6 +10,8 @@ import {
   PullRequestFilters,
 } from '../../core/pull-requests/pull-request-filtering';
 import { TrackedPullRequestsService } from '../../core/pull-requests/tracked-pull-requests.service';
+import { WatchedRepositoriesService } from '../../core/repositories/watched-repositories.service';
+import { IconComponent } from '../../shared/components/icon/icon.component';
 import { PullRequestCardComponent } from '../../shared/components/pull-request-card/pull-request-card.component';
 import { PullRequestFiltersComponent } from '../../shared/components/pull-request-filters/pull-request-filters.component';
 import { WORK_STATUS_OPTIONS } from '../../shared/pull-request-labels';
@@ -20,6 +22,7 @@ import { WorkService } from './work.service';
   selector: 'app-work',
   imports: [
     RouterLink,
+    IconComponent,
     PullRequestCardComponent,
     PullRequestFiltersComponent,
     WatchedRepositoriesComponent,
@@ -29,10 +32,27 @@ import { WorkService } from './work.service';
 })
 export class WorkComponent {
   private readonly work = inject(WorkService);
+  private readonly watchedRepositories = inject(WatchedRepositoriesService);
   protected readonly sessions = inject(GithubSessionService);
   protected readonly trackedPullRequests = inject(TrackedPullRequestsService);
 
   protected readonly statusOptions = WORK_STATUS_OPTIONS;
+  protected readonly isRepositoriesPanelOpen = signal(false);
+  protected readonly watchedRepositoriesCount = computed(() => {
+    const account = this.sessions.activeAccount();
+    return account ? this.watchedRepositories.forSession(account.id).length : 0;
+  });
+  protected readonly summaryText = computed(() => {
+    const pullRequests = this.trackedPullRequests.work();
+    const currentCount = pullRequests.filter(
+      (pullRequest) => pullRequest.status === 'CURRENT',
+    ).length;
+    const total =
+      pullRequests.length === 1
+        ? '1 Pull Request tuyo'
+        : `${pullRequests.length} Pull Requests tuyos`;
+    return `${total} · ${currentCount} en curso`;
+  });
   protected readonly isImporting = signal(false);
   protected readonly message = signal('');
   protected readonly errorMessage = signal('');
@@ -47,6 +67,10 @@ export class WorkComponent {
       this.sessions.accounts().map((account) => [account.id, showNames ? account.name : '']),
     );
   });
+
+  protected toggleRepositoriesPanel(): void {
+    this.isRepositoriesPanelOpen.update((isOpen) => !isOpen);
+  }
 
   protected async importPullRequests(): Promise<void> {
     const account = this.sessions.activeAccount();

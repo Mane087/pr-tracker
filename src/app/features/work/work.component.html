@@ -1,70 +1,119 @@
-<div class="flex flex-wrap items-center justify-between gap-2">
-  <h2 class="text-base font-semibold">Trabajo</h2>
-  @if (sessions.activeAccount(); as account) {
-    <button
-      type="button"
-      class="rounded-md bg-lime-600 px-3 py-1 text-sm font-medium text-white hover:bg-lime-700 disabled:opacity-60"
-      [disabled]="!account.hasToken || isImporting()"
-      (click)="importPullRequests()"
-    >
-      {{ isImporting() ? 'Importando…' : 'Importar mis PR abiertos' }}
-    </button>
-  }
-</div>
-
-@if (sessions.activeAccount(); as account) {
-  <details class="mt-3 rounded-lg border border-slate-200 p-3 dark:border-slate-800">
-    <summary class="cursor-pointer text-sm font-medium">Repositorios de {{ account.name }}</summary>
-    <div class="mt-3">
-      <app-watched-repositories [account]="account" />
+<div class="flex flex-col gap-4">
+  <div class="flex flex-wrap items-start justify-between gap-3">
+    <div>
+      <h2 class="text-2xl leading-7 font-semibold tracking-tight">Trabajo</h2>
+      <p class="mt-0.5 text-sm text-ink-muted">{{ summaryText() }}</p>
     </div>
-  </details>
-} @else {
-  <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">
-    Configura una cuenta de GitHub en
-    <a routerLink="/settings" class="underline">Cuentas</a>
-    para importar tus Pull Requests.
-  </p>
-}
-
-@if (message()) {
-  <p role="status" class="mt-3 text-sm text-slate-700 dark:text-slate-300">{{ message() }}</p>
-}
-@if (errorMessage()) {
-  <p role="alert" class="mt-3 text-sm text-red-700 dark:text-red-400">{{ errorMessage() }}</p>
-}
-
-@if (trackedPullRequests.work().length > 0) {
-  <div class="mt-4 rounded-lg border border-slate-200 p-3 dark:border-slate-800">
-    <app-pull-request-filters
-      [(value)]="filters"
-      [statusOptions]="statusOptions"
-      [accounts]="sessions.accounts()"
-      [totalCount]="trackedPullRequests.work().length"
-      [visibleCount]="visiblePullRequests().length"
-    />
+    @if (sessions.activeAccount(); as account) {
+      <div class="flex flex-wrap items-center gap-2">
+        <button
+          type="button"
+          class="btn btn-secondary"
+          [attr.aria-expanded]="isRepositoriesPanelOpen()"
+          (click)="toggleRepositoriesPanel()"
+        >
+          <app-icon name="repository" />
+          Repositorios de {{ account.name }}
+          <span class="badge h-5 min-w-5 text-[11px]">{{ watchedRepositoriesCount() }}</span>
+        </button>
+        <button
+          type="button"
+          class="btn btn-primary"
+          [disabled]="!account.hasToken || isImporting()"
+          (click)="importPullRequests()"
+        >
+          <app-icon name="download" />
+          {{ isImporting() ? 'Importando…' : 'Importar mis PR abiertos' }}
+        </button>
+      </div>
+    }
   </div>
-}
 
-<ul class="mt-4 space-y-3" aria-label="Pull Requests en trabajo">
-  @for (pullRequest of visiblePullRequests(); track pullRequest.id) {
-    <li>
-      <app-pull-request-card
-        [pullRequest]="pullRequest"
-        [statusOptions]="statusOptions"
-        [accountName]="accountNameById().get(pullRequest.githubSessionId) ?? ''"
-        (statusChange)="changeStatus(pullRequest, $event)"
-        (priorityChange)="changePriority(pullRequest, $event)"
-        (acknowledge)="acknowledge(pullRequest)"
-      />
-    </li>
-  } @empty {
-    <li class="text-sm text-slate-600 dark:text-slate-400">
-      @if (trackedPullRequests.work().length > 0) {
-        Ningún Pull Request coincide con los filtros.
-      } @else {
-        Todavía no hay Pull Requests en trabajo. Sigue un repositorio e importa tus PR abiertos.
-      }
-    </li>
+  @if (sessions.activeAccount(); as account) {
+    @if (isRepositoriesPanelOpen()) {
+      <section class="card p-4" aria-label="Repositorios seguidos por cuenta">
+        <app-watched-repositories [account]="account" />
+      </section>
+    }
+  } @else {
+    <div
+      class="flex flex-col items-center gap-2.5 rounded-[14px] border border-dashed border-line-strong px-6 py-8 text-center"
+    >
+      <span
+        class="flex size-12 items-center justify-center rounded-full bg-primary-soft text-primary-ink"
+      >
+        <app-icon name="account" size="22" />
+      </span>
+      <p class="text-sm text-ink-muted">
+        Configura una cuenta de GitHub en
+        <a routerLink="/settings" class="font-semibold text-primary underline">Cuentas</a>
+        para importar tus Pull Requests.
+      </p>
+    </div>
   }
-</ul>
+
+  @if (message()) {
+    <p role="status" class="notice bg-success-soft text-success-ink">
+      <app-icon name="check-circle" />
+      {{ message() }}
+    </p>
+  }
+  @if (errorMessage()) {
+    <p role="alert" class="notice bg-danger-soft text-danger-ink">
+      <app-icon name="alert" />
+      {{ errorMessage() }}
+    </p>
+  }
+
+  @if (trackedPullRequests.work().length > 0) {
+    <div class="card p-2">
+      <app-pull-request-filters
+        [(value)]="filters"
+        [statusOptions]="statusOptions"
+        [accounts]="sessions.accounts()"
+        [totalCount]="trackedPullRequests.work().length"
+        [visibleCount]="visiblePullRequests().length"
+      />
+    </div>
+  }
+
+  <ul class="flex flex-col gap-3" aria-label="Pull Requests en trabajo">
+    @for (pullRequest of visiblePullRequests(); track pullRequest.id) {
+      <li>
+        <app-pull-request-card
+          [pullRequest]="pullRequest"
+          [statusOptions]="statusOptions"
+          [accountName]="accountNameById().get(pullRequest.githubSessionId) ?? ''"
+          (statusChange)="changeStatus(pullRequest, $event)"
+          (priorityChange)="changePriority(pullRequest, $event)"
+          (acknowledge)="acknowledge(pullRequest)"
+        />
+      </li>
+    } @empty {
+      @if (trackedPullRequests.work().length > 0) {
+        <li
+          class="flex flex-col items-center gap-2.5 rounded-[14px] border border-dashed border-line-strong px-6 py-8 text-center text-sm text-ink-muted"
+        >
+          Ningún Pull Request coincide con los filtros.
+        </li>
+      } @else if (sessions.accounts().length > 0) {
+        <li
+          class="flex flex-col items-center gap-2.5 rounded-[14px] border border-dashed border-line-strong px-6 py-8 text-center text-sm text-ink-muted"
+        >
+          <span
+            class="flex size-12 items-center justify-center rounded-full bg-primary-soft text-primary-ink"
+          >
+            <app-icon name="pr" size="22" />
+          </span>
+          <span class="text-[15px] font-semibold text-ink">
+            Todavía no hay Pull Requests en trabajo
+          </span>
+          <span
+            >Sigue un repositorio e importa tus PR abiertos. Empezarán como pausados con prioridad
+            P2.</span
+          >
+        </li>
+      }
+    }
+  </ul>
+</div>

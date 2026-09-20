@@ -1,68 +1,83 @@
-<ul class="space-y-1 text-sm" aria-label="Repositorios seguidos">
-  @for (repository of repositories(); track repository.id) {
-    <li class="flex items-center justify-between gap-2">
-      <span>{{ repository.fullName }}</span>
+<div class="flex flex-col gap-3 text-sm">
+  <div class="flex flex-wrap items-center gap-2">
+    @if (!account().hasToken) {
+      <p class="inline-flex items-center gap-2 text-ink-muted">
+        <app-icon name="key" />
+        Ingresa el token de la cuenta para consultar sus repositorios.
+      </p>
+    } @else if (!hasLoaded()) {
       <button
         type="button"
-        class="text-red-700 underline dark:text-red-400"
-        (click)="remove(repository.id)"
+        class="btn btn-secondary"
+        [disabled]="isLoading()"
+        (click)="loadRepositories()"
       >
-        Quitar
+        <app-icon name="repository" />
+        {{ isLoading() ? 'Cargando…' : 'Cargar repositorios' }}
       </button>
-    </li>
-  } @empty {
-    <li class="text-slate-600 dark:text-slate-400">
-      Todavía no sigues repositorios con esta cuenta.
-    </li>
-  }
-</ul>
-
-<div class="mt-3 flex flex-wrap items-center gap-2 text-sm">
-  @if (!account().hasToken) {
-    <p class="text-slate-600 dark:text-slate-400">
-      Ingresa el token de la cuenta para consultar sus repositorios.
-    </p>
-  } @else if (!hasLoaded()) {
-    <button
-      type="button"
-      class="rounded-md border border-slate-300 px-3 py-1 hover:bg-slate-100 disabled:opacity-60 dark:border-slate-700 dark:hover:bg-slate-800"
-      [disabled]="isLoading()"
-      (click)="loadRepositories()"
-    >
-      {{ isLoading() ? 'Cargando…' : 'Cargar repositorios' }}
-    </button>
-  } @else {
-    <label class="flex items-center gap-2">
-      <span class="sr-only">Repositorio</span>
-      <select
-        class="rounded-md border border-slate-300 bg-white px-2 py-1 dark:border-slate-700 dark:bg-slate-900"
-        (change)="onSelectionChange($event)"
+    } @else {
+      <label class="field field-lg min-w-64 flex-1">
+        <span class="sr-only">Repositorio</span>
+        <app-icon name="repository" class="text-ink-subtle" />
+        <select (change)="onSelectionChange($event)">
+          <option value="" [selected]="selectedFullName() === ''">Selecciona un repositorio</option>
+          @for (repository of selectableRepositories(); track repository.id) {
+            <option
+              [value]="repository.fullName"
+              [selected]="repository.fullName === selectedFullName()"
+            >
+              {{ repository.fullName }}
+            </option>
+          }
+        </select>
+        <app-icon name="chevron-down" size="14" class="field-chevron" />
+      </label>
+      <button
+        type="button"
+        class="btn btn-primary"
+        [disabled]="selectedFullName() === ''"
+        (click)="addSelected()"
       >
-        <option value="" [selected]="selectedFullName() === ''">Selecciona un repositorio</option>
-        @for (repository of selectableRepositories(); track repository.id) {
-          <option
-            [value]="repository.fullName"
-            [selected]="repository.fullName === selectedFullName()"
-          >
-            {{ repository.fullName }}
-          </option>
-        }
-      </select>
-    </label>
-    <button
-      type="button"
-      class="rounded-md bg-lime-600 px-3 py-1 font-medium text-white hover:bg-lime-700 disabled:opacity-60"
-      [disabled]="selectedFullName() === ''"
-      (click)="addSelected()"
-    >
-      Agregar
-    </button>
-    <button type="button" class="underline" [disabled]="isLoading()" (click)="loadRepositories()">
-      Actualizar lista
-    </button>
+        <app-icon name="plus" />
+        Agregar
+      </button>
+      <button
+        type="button"
+        class="btn btn-ghost"
+        [disabled]="isLoading()"
+        (click)="loadRepositories()"
+      >
+        <app-icon name="reload" size="14" [class.animate-spin]="isLoading()" />
+        Actualizar lista
+      </button>
+    }
+  </div>
+
+  <ul class="flex flex-col gap-1" aria-label="Repositorios seguidos">
+    @for (repository of repositories(); track repository.id) {
+      <li
+        class="flex items-center justify-between gap-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-surface-muted"
+      >
+        <span class="inline-flex items-center gap-2 font-mono text-[13px] text-ink-muted">
+          <span class="size-2 rounded-full bg-success-dot"></span>
+          {{ repository.fullName }}
+        </span>
+        <button type="button" class="btn btn-danger btn-sm" (click)="remove(repository.id)">
+          <app-icon name="delete" size="14" />
+          Quitar
+        </button>
+      </li>
+    } @empty {
+      @if (account().hasToken) {
+        <li class="px-2 text-ink-subtle">Todavía no sigues repositorios con esta cuenta.</li>
+      }
+    }
+  </ul>
+
+  @if (errorMessage()) {
+    <p role="alert" class="notice bg-danger-soft text-danger-ink">
+      <app-icon name="alert" />
+      {{ errorMessage() }}
+    </p>
   }
 </div>
-
-@if (errorMessage()) {
-  <p role="alert" class="mt-2 text-sm text-red-700 dark:text-red-400">{{ errorMessage() }}</p>
-}
