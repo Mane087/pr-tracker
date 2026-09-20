@@ -3,36 +3,51 @@ import { form, FormField, required, submit } from '@angular/forms/signals';
 
 import { describeGithubError } from '../../../core/github/github-errors';
 import { GithubSessionService } from '../../../core/github/github-session.service';
+import { IconComponent } from '../../../shared/components/icon/icon.component';
 
 @Component({
   selector: 'app-account-token-form',
-  imports: [FormField],
+  imports: [FormField, IconComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <form class="flex flex-wrap items-end gap-2" novalidate (submit)="onSubmit($event)">
-      <label class="block min-w-48 flex-1 text-sm">
-        <span class="font-medium">Token de acceso</span>
-        <input
-          type="password"
-          autocomplete="off"
-          class="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 dark:border-slate-700 dark:bg-slate-900"
-          [formField]="tokenForm.token"
-        />
+    <form class="flex flex-wrap items-start gap-3" novalidate (submit)="onSubmit($event)">
+      <label class="block min-w-48 flex-1 text-xs font-semibold text-ink-muted">
+        Token de acceso
+        <span class="field field-lg mt-1.5 font-normal text-ink">
+          <app-icon name="key" class="text-ink-subtle" />
+          <input
+            type="password"
+            autocomplete="off"
+            placeholder="github_pat_…"
+            [formField]="tokenForm.token"
+          />
+        </span>
+        @if (tokenForm.token().touched() && tokenForm.token().invalid()) {
+          <span class="mt-1 block font-normal text-danger-ink">{{
+            tokenForm.token().errors()[0]?.message
+          }}</span>
+        }
       </label>
       <button
         type="submit"
-        class="rounded-md bg-lime-600 px-4 py-2 text-sm font-medium text-white hover:bg-lime-700 disabled:opacity-60"
+        class="btn btn-primary mt-[1.375rem]"
         [disabled]="tokenForm().submitting()"
       >
-        {{ tokenForm().submitting() ? 'Validando…' : 'Ingresar token' }}
+        @if (tokenForm().submitting()) {
+          <app-icon name="reload" class="animate-spin" />
+          Validando…
+        } @else {
+          <app-icon name="check" />
+          Ingresar token
+        }
       </button>
-      @if (tokenForm.token().touched() && tokenForm.token().invalid()) {
-        <span class="basis-full text-sm text-red-700 dark:text-red-400">{{
-          tokenForm.token().errors()[0]?.message
-        }}</span>
-      }
+      <p class="basis-full text-xs text-ink-subtle">
+        <app-icon name="shield" size="12" class="mr-1 align-[-1px]" />
+        El token solo vive en memoria. Al recargar la aplicación deberás ingresarlo otra vez.
+      </p>
       @if (errorMessage()) {
-        <p role="alert" class="basis-full text-sm text-red-700 dark:text-red-400">
+        <p role="alert" class="notice basis-full bg-danger-soft text-danger-ink">
+          <app-icon name="alert" />
           {{ errorMessage() }}
         </p>
       }

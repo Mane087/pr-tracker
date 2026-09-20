@@ -3,12 +3,13 @@ import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/cor
 import { describeGithubError } from '../../core/github/github-errors';
 import { GithubSessionService } from '../../core/github/github-session.service';
 import { GitHubAccountSession } from '../../core/github/models';
+import { IconComponent } from '../../shared/components/icon/icon.component';
 import { AccountTokenFormComponent } from './components/account-token-form.component';
 import { AddAccountFormComponent } from './components/add-account-form.component';
 
 @Component({
   selector: 'app-settings',
-  imports: [AccountTokenFormComponent, AddAccountFormComponent],
+  imports: [IconComponent, AccountTokenFormComponent, AddAccountFormComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './settings.component.html',
 })

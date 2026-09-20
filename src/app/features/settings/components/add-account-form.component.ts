@@ -3,55 +3,96 @@ import { form, FormField, required, submit } from '@angular/forms/signals';
 
 import { describeGithubError } from '../../../core/github/github-errors';
 import { GithubSessionService } from '../../../core/github/github-session.service';
+import { IconComponent } from '../../../shared/components/icon/icon.component';
 
 @Component({
   selector: 'app-add-account-form',
-  imports: [FormField],
+  imports: [FormField, IconComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <form class="space-y-3" novalidate (submit)="onSubmit($event)">
-      <label class="block text-sm">
-        <span class="font-medium">Nombre</span>
-        <input
-          type="text"
-          autocomplete="off"
-          placeholder="Trabajo"
-          class="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 dark:border-slate-700 dark:bg-slate-900"
-          [formField]="accountForm.name"
-        />
+    <form class="flex flex-col gap-4" novalidate (submit)="onSubmit($event)">
+      <label class="block text-xs font-semibold text-ink-muted">
+        Nombre
+        <span class="field field-lg mt-1.5 font-normal text-ink">
+          <input
+            type="text"
+            autocomplete="off"
+            placeholder="Trabajo, Personal, Cliente…"
+            [formField]="accountForm.name"
+          />
+        </span>
         @if (accountForm.name().touched() && accountForm.name().invalid()) {
-          <span class="mt-1 block text-red-700 dark:text-red-400">{{
+          <span class="mt-1 block font-normal text-danger-ink">{{
             accountForm.name().errors()[0]?.message
           }}</span>
         }
       </label>
 
-      <label class="block text-sm">
-        <span class="font-medium">Token de acceso</span>
-        <input
-          type="password"
-          autocomplete="off"
-          class="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 dark:border-slate-700 dark:bg-slate-900"
-          [formField]="accountForm.token"
-        />
+      <label class="block text-xs font-semibold text-ink-muted">
+        Token de acceso
+        <span class="field field-lg mt-1.5 font-normal text-ink">
+          <app-icon name="key" class="text-ink-subtle" />
+          <input
+            type="password"
+            autocomplete="off"
+            placeholder="github_pat_…"
+            [formField]="accountForm.token"
+          />
+        </span>
         @if (accountForm.token().touched() && accountForm.token().invalid()) {
-          <span class="mt-1 block text-red-700 dark:text-red-400">{{
+          <span class="mt-1 block font-normal text-danger-ink">{{
             accountForm.token().errors()[0]?.message
           }}</span>
         }
       </label>
 
+      <div
+        class="flex flex-col gap-2.5 rounded-xl bg-primary-soft p-4 text-[13px] text-primary-ink"
+      >
+        <span class="inline-flex items-center gap-2 font-semibold">
+          <app-icon name="github" />
+          Permisos mínimos del token
+        </span>
+        <ul class="flex flex-col gap-1.5">
+          <li class="flex items-center gap-2">
+            <app-icon name="check" size="14" /> Repositorios: solo los seleccionados
+          </li>
+          <li class="flex items-center gap-2">
+            <app-icon name="check" size="14" /> Metadata: Read
+          </li>
+          <li class="flex items-center gap-2">
+            <app-icon name="check" size="14" /> Pull requests: Read
+          </li>
+        </ul>
+      </div>
+
       @if (errorMessage()) {
-        <p role="alert" class="text-sm text-red-700 dark:text-red-400">{{ errorMessage() }}</p>
+        <p role="alert" class="notice bg-danger-soft text-danger-ink">
+          <app-icon name="alert" />
+          {{ errorMessage() }}
+        </p>
       }
 
-      <button
-        type="submit"
-        class="rounded-md bg-lime-600 px-4 py-2 text-sm font-medium text-white hover:bg-lime-700 disabled:opacity-60"
-        [disabled]="accountForm().submitting()"
-      >
-        {{ accountForm().submitting() ? 'Validando…' : 'Agregar cuenta' }}
-      </button>
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <a
+          href="https://github.com/settings/personal-access-tokens/new"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex items-center gap-1.5 text-[13px] font-semibold text-primary hover:underline"
+        >
+          Crear token en GitHub
+          <app-icon name="external-link" size="14" />
+        </a>
+        <button type="submit" class="btn btn-primary" [disabled]="accountForm().submitting()">
+          @if (accountForm().submitting()) {
+            <app-icon name="reload" class="animate-spin" />
+            Validando…
+          } @else {
+            <app-icon name="plus" />
+            Agregar cuenta
+          }
+        </button>
+      </div>
     </form>
   `,
 })
