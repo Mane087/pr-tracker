@@ -1,0 +1,75 @@
+<h2 class="text-base font-semibold">Cuentas de GitHub</h2>
+<p class="mt-1 text-sm text-slate-600 dark:text-slate-400">
+  Los tokens solo se guardan en memoria. Al recargar la aplicación deberás ingresarlos de nuevo.
+</p>
+
+@if (errorMessage()) {
+  <p role="alert" class="mt-3 text-sm text-red-700 dark:text-red-400">{{ errorMessage() }}</p>
+}
+
+<ul class="mt-4 space-y-3" aria-label="Cuentas configuradas">
+  @for (account of sessions.accounts(); track account.id) {
+    <li class="rounded-lg border border-slate-200 p-4 dark:border-slate-800">
+      <div class="flex items-center gap-3">
+        @if (account.avatarUrl) {
+          <img
+            [src]="account.avatarUrl"
+            alt=""
+            width="32"
+            height="32"
+            class="size-8 rounded-full"
+          />
+        }
+        <div class="min-w-0 flex-1">
+          <p class="font-medium">{{ account.name }}</p>
+          <p class="truncate text-sm text-slate-600 dark:text-slate-400">
+            &#64;{{ account.username }}
+          </p>
+        </div>
+        @if (account.hasToken) {
+          <span
+            class="rounded-full bg-lime-100 px-2 py-0.5 text-xs font-medium text-lime-800 dark:bg-lime-900 dark:text-lime-200"
+          >
+            Token en memoria
+          </span>
+        } @else {
+          <span
+            class="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-900 dark:text-amber-200"
+          >
+            Token requerido
+          </span>
+        }
+      </div>
+
+      @if (!account.hasToken) {
+        <app-account-token-form class="mt-3 block" [accountId]="account.id" />
+      }
+
+      <div class="mt-3 flex gap-4 text-sm">
+        @if (account.hasToken) {
+          <button type="button" class="underline" (click)="sessions.clearToken(account.id)">
+            Cerrar sesión
+          </button>
+        }
+        <button
+          type="button"
+          class="text-red-700 underline dark:text-red-400"
+          (click)="forgetAccount(account)"
+        >
+          Olvidar cuenta
+        </button>
+      </div>
+    </li>
+  } @empty {
+    <li class="text-sm text-slate-600 dark:text-slate-400">Todavía no hay cuentas configuradas.</li>
+  }
+</ul>
+
+<section class="mt-8">
+  <h3 class="text-base font-semibold">Agregar cuenta</h3>
+  <p class="mt-1 mb-3 text-sm text-slate-600 dark:text-slate-400">
+    Usa un fine-grained personal access token con permisos de solo lectura: Metadata y Pull
+    requests.
+  </p>
+  <app-add-account-form />
+</section>
