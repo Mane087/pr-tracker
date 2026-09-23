@@ -15,6 +15,9 @@
     <a title="Security" href="https://github.com/Mane087/pr-tracker/actions/workflows/security.yml">
        <img src="https://github.com/Mane087/pr-tracker/actions/workflows/security.yml/badge.svg" alt="Security" />
     </a>
+    <a title="Apache-2.0" href="LICENSE.md">
+       <img src="https://img.shields.io/badge/license-Apache--2.0-blue" alt="Apache-2.0" />
+    </a>
     <a title="Angular" href="https://angular.dev">
        <img src="https://img.shields.io/badge/Angular-22-DD0031?logo=angular&logoColor=white" alt="Angular 22" />
     </a>
@@ -205,3 +208,14 @@ links because a full page load discards the in-memory tokens by design.
 - **Deploy** publishes the application to GitHub Pages on every push to `main`. The build
   uses `--base-href /pr-tracker/` and copies `index.html` as `404.html` so deep links
   such as `/work` resolve through the router.
+
+## Contributing
+
+Read [CONTRIBUTING.md](CONTRIBUTING.md) for the workflow, coding guidelines and commit
+conventions. This project follows the [Contributor Covenant Code of
+Conduct](CODE_OF_CONDUCT.md). Security issues must be reported privately as described in
+[SECURITY.md](SECURITY.md).
+
+## License
+
+Licensed under the [Apache License 2.0](LICENSE.md).
